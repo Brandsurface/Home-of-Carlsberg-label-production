@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{page_title}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/order.css"/>
+</head>
+<body>
+
+<header>
+  <a href="#" style="display:flex;align-items:center;line-height:0;">
+    <img src="/brandsurface.svg" style="height:26px;width:auto;" alt="Brandsurface"/>
+  </a>
+  <div class="step-pills">
+    <div class="step-pill active" id="pill-1"><span class="step-dot"></span>{{step_fill_in}}</div>
+    <div class="step-sep">›</div>
+    <div class="step-pill" id="pill-2"><span class="step-dot"></span>{{step_review}}</div>
+    <div class="step-sep">›</div>
+    <div class="step-pill" id="pill-3"><span class="step-dot"></span>{{step_sent}}</div>
+  </div>
+  <div class="header-right">
+    <button type="button" id="tour-btn" onclick="startTour()" title="{{tour_btn}}" aria-label="{{tour_btn}}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+      <span>{{tour_btn}}</span>
+    </button>
+    <!--ACCOUNT_LINK-->
+    <div class="lang-switcher">
+      <button type="button" class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <span class="lang-sep">|</span>
+      <button type="button" class="lang-btn" id="lang-da" onclick="setLang('da')">DA</button>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+<!-- ═══ VIEW 1: FORM ═══ -->
+<div class="view active" id="view-form">
+<div class="form-wrap">
+
+  <div class="form-hero">
+    <h1>{{hero_title}}</h1>
+    <p class="hero-sub">{{hero_sub}}</p>
+  </div>
+
+  <div class="form-outer">
+
+    <!-- ── Sidebar: order process guide ── -->
+    <aside class="form-guide-panel">
+      <div class="orderhelp">
+        <div class="oh-head">
+          <span class="oh-head-label"><span class="oh-dot"></span>{{order_process_label}}</span>
+          <p class="oh-head-sub">{{order_process_sub}}</p>
+        </div>
+        <div class="oh-steps">
+          <div class="oh-step" id="ohstep-1">
+            <div class="oh-badge">1</div>
+            <div class="oh-text"><div class="oh-step-title">{{oh_step1_title}}</div><p>{{oh_step1_p}}</p></div>
+          </div>
+          <div class="oh-step" id="ohstep-2">
+            <div class="oh-badge">2</div>
+            <div class="oh-text"><div class="oh-step-title">{{oh_step2_title}}</div><p>{{oh_step2_p}}</p></div>
+          </div>
+          <div class="oh-step" id="ohstep-3">
+            <div class="oh-badge">3</div>
+            <div class="oh-text"><div class="oh-step-title">{{oh_step3_title}}</div><p>{{oh_step3_p}}</p></div>
+          </div>
+          <div class="oh-step" id="ohstep-4">
+            <div class="oh-badge oh-badge-final">✓</div>
+            <div class="oh-text"><div class="oh-step-title">{{oh_step4_title}}</div><p>{{oh_step4_p}}</p></div>
+          </div>
+        </div>
+        <!--HELP_BOX-->
+      </div>
+    </aside>
+
+    <!-- ── Main: form cards ── -->
+    <div class="form-main-panel">
+
+      <!-- Order details -->
+      <div class="card">
+        <div class="card-label"><span class="card-dot"></span>{{card_details_label}}</div>
+        <div class="stack-16">
+          <div class="field">
+            <label>{{campaign_label}} <span class="req">*</span></label>
+            <input type="text" id="butiksnavn" placeholder="{{campaign_ph}}"/>
+            <div class="field-error" id="err-butiksnavn">{{campaign_err}}</div>
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label>{{name_label}} <span class="req">*</span></label>
+              <input type="text" id="bestiller_navn" placeholder="{{name_ph}}"/>
+              <div class="field-error" id="err-bestiller_navn">{{name_err}}</div>
+            </div>
+            <div class="field">
+              <label>{{email_label}} <span class="req">*</span></label>
+              <input type="email" id="bestiller_email" placeholder="{{email_ph}}"/>
+              <div class="field-error" id="err-bestiller_email">{{email_err}}</div>
+            </div>
+          </div>
+          <div class="field" style="max-width:240px;">
+            <label>{{deadline_label}}</label>
+            <input type="date" id="delivery_date"/>
+          </div>
+          <div id="consent-container">
+            <div class="toggle-pill" id="legal-toggle" onclick="toggleLegal()">
+              <div class="toggle-switch"></div>
+              <span class="toggle-label">{{legal_label}}</span>
+            </div>
+            <div class="legal-expand" id="legal-expand">{{legal_text}}</div>
+            <div class="consent-error" id="consent-error">{{consent_err}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1 · Brand selection -->
+      <div class="card">
+        <div class="card-label"><span class="card-num">1</span>{{card_brand_label}}</div>
+        <div class="field" style="gap:10px;">
+          <label>{{brand_label}} <span class="req">*</span></label>
+          <div class="brand-grid" id="brand-grid"><!--BRAND_TILES--></div>
+          <div class="field-error" id="err-brand">{{brand_err}}</div>
+        </div>
+        <div class="field" style="margin-top:18px;">
+          <label>{{variant_label}}</label>
+          <div class="select-wrap">
+            <select id="variant" disabled>
+              <option value="">{{variant_ph}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 · Size & technical specs -->
+      <div class="card">
+        <div class="card-label"><span class="card-num">2</span>{{card_tech_label}}</div>
+
+        <div class="field" style="gap:10px;">
+          <label>{{size_label}} <span class="req">*</span></label>
+          <div class="seg-chips" id="size-chips"><!--SIZE_CHIPS--></div>
+          <div class="field-error" id="err-size">{{size_err}}</div>
+        </div>
+
+        <div class="row-2" style="margin-top:18px;">
+          <div class="field">
+            <label>{{region_label}} <span class="req">*</span></label>
+            <div class="segmented" id="region-seg"><!--REGION_SEG--></div>
+          </div>
+          <div class="field">
+            <label>{{label_type_label}} <span class="req">*</span></label>
+            <div class="segmented" id="labeltype-seg"><!--LABELTYPE_SEG--></div>
+          </div>
+        </div>
+
+        <div class="row-2" id="paper-row" style="margin-top:18px;">
+          <div class="field" id="paper-field">
+            <label>{{paper_label}} <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="paper"><!--PAPER_OPTIONS--></select>
+            </div>
+            <div class="field-error" id="err-paper">{{paper_err}}</div>
+          </div>
+          <div class="field">
+            <label>{{finish_label}} <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="finish"><!--FINISH_OPTIONS--></select>
+            </div>
+            <div class="field-error" id="err-finish">{{finish_err}}</div>
+          </div>
+        </div>
+
+        <div class="row-2" style="margin-top:18px;">
+          <div class="field">
+            <label>{{cutterguide_label}}</label>
+            <div class="input-attach">
+              <input type="text" id="cutterguide" placeholder="{{cutterguide_ph}}"/>
+              <button type="button" class="attach-icon-btn" title="{{attach_btn}}" onclick="pickFiles('cutterguide')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+            </div>
+            <div class="upload-list" id="upload-list-cutterguide"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3 · Production details -->
+      <div class="card">
+        <div class="card-label"><span class="card-num">3</span>{{card_production_label}}</div>
+
+        <div class="row-2">
+          <div class="field">
+            <label>{{material_old_label}}</label>
+            <input type="text" id="material_old"/>
+          </div>
+          <div class="field">
+            <label>{{material_new_label}}</label>
+            <input type="text" id="material_new"/>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:16px;">
+          <label>{{ean_label}}</label>
+          <input type="text" id="ean" placeholder="{{ean_ph}}"/>
+        </div>
+
+        <div class="pantmaerke-card" id="pantmaerke-card">
+          <label class="check-row">
+            <input type="checkbox" id="pantmaerke" checked/>
+            <span>
+              <span class="check-title">{{pantmaerke_label}}</span>
+              <span class="check-note">{{pantmaerke_note}}</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="field" style="margin-top:16px;gap:10px;">
+          <label>{{ingredients_label}}</label>
+          <div class="rich-toolbar">
+            <button type="button" id="ing-bold-btn" class="rich-bold-btn" title="{{ingredients_bold}}" onmousedown="event.preventDefault()" onclick="toggleIngredientBold()"><b>B</b></button>
+            <span class="rich-toolbar-hint">{{ingredients_bold_help}}</span>
+          </div>
+          <div id="ingredients" class="rich-input" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="{{ingredients_ph}}"></div>
+          <div id="ingredients-marked" class="marked-box" hidden>
+            <div class="marked-label">{{ingredients_marked_label}}</div>
+            <div id="ingredients-marked-list" class="marked-list"></div>
+          </div>
+          <div class="attach-inline">
+            <span class="attach-or">{{or_label}}</span>
+            <button type="button" class="brief-attach-btn" onclick="pickFiles('ingredients')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              {{attach_pdf_btn}}
+            </button>
+          </div>
+          <div class="upload-list" id="upload-list-ingredients"></div>
+        </div>
+
+        <div class="row-2" style="margin-top:18px;">
+          <div class="field">
+            <label>{{energy_label}}</label>
+            <div class="energy-row">
+              <input type="text" id="energy_kj" inputmode="decimal" placeholder="{{energy_kj_ph}}"/>
+              <input type="text" id="energy_kcal" inputmode="decimal" placeholder="{{energy_kcal_ph}}"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>{{units_label}}</label>
+            <input type="text" id="units" inputmode="decimal" placeholder="{{units_ph}}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional information -->
+      <div class="card">
+        <div class="card-label"><span class="card-dot"></span>{{card_additional_label}}</div>
+        <div class="field" style="margin-top:4px;gap:10px;">
+          <textarea id="andet" rows="4" placeholder="{{additional_ph}}"></textarea>
+          <div class="attach-inline">
+            <button type="button" class="brief-attach-btn" onclick="pickFiles('additional')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              {{attach_btn}}
+            </button>
+          </div>
+          <div class="upload-list" id="upload-list-additional"></div>
+        </div>
+      </div>
+
+      <!-- Artwork -->
+      <div class="card">
+        <div class="card-label"><span class="card-dot"></span>{{card_artwork_label}}</div>
+
+        <div class="artwork-card">
+          <div class="toggle-pill" id="artwork-toggle" onclick="toggleArtwork()">
+            <div class="toggle-switch"></div>
+            <span class="toggle-label">{{artwork_toggle}}</span>
+          </div>
+          <p class="artwork-note">{{artwork_note}}</p>
+          <div class="toggle-pill" id="smash-toggle" onclick="toggleSmash()">
+            <div class="toggle-switch"></div>
+            <span class="toggle-label">{{smash_toggle}}</span>
+          </div>
+        </div>
+
+        <div class="produkt-section-label">{{attachments_section}}</div>
+        <div class="artwork-card">
+          <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this)"/>
+          <button type="button" class="upload-btn" onclick="pickFiles('artwork')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            {{attach_btn}}
+          </button>
+          <p class="artwork-note">{{attach_note}}</p>
+          <div id="upload-list-artwork" class="upload-list"></div>
+        </div>
+      </div>
+
+      <button class="btn-accent review-order-btn" onclick="goToReview()">
+        {{review_btn}}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
+    </div><!-- /form-main-panel -->
+  </div><!-- /form-outer -->
+</div><!-- /form-wrap -->
+</div><!-- /view-form -->
+
+
+<!-- ═══ REVIEW POPUP ═══ -->
+<div class="modal-overlay" id="review-modal" onclick="if(event.target===this)goBack()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="review-title">
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title" id="review-title">{{review_title}}</h2>
+        <p class="modal-sub">{{review_sub}}</p>
+      </div>
+      <button type="button" class="modal-close" onclick="goBack()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="rv-body"></div>
+    <div class="modal-foot">
+      <button class="btn-secondary btn-grey" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M7 3l-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{edit_order_btn}}
+      </button>
+      <button class="btn-primary" onclick="submitOrder()">
+        {{submit_order_btn}}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ VIEW 3: SENT ═══ -->
+<div class="view" id="view-confirm">
+<div class="confirm-wrap">
+  <div class="confirm-icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+  </div>
+  <h2 class="confirm-title">{{confirm_title}}</h2>
+  <p class="confirm-text">{{confirm_text1}}</p>
+  <div class="confirm-email" id="conf-email">—</div>
+  <p class="confirm-text" style="margin-top:4px;">{{confirm_text2}}</p>
+
+  <div class="confirm-steps">
+    <div class="cs-title">{{confirm_next}}</div>
+    <div class="cs-item">
+      <div class="cs-num">1</div>
+      <div class="cs-body"><div class="cs-h">{{confirm_step1_h}}</div><div class="cs-d">{{confirm_step1_d}}</div></div>
+    </div>
+    <div class="cs-item">
+      <div class="cs-num">2</div>
+      <div class="cs-body"><div class="cs-h">{{confirm_step2_h}}</div><div class="cs-d">{{confirm_step2_d}}</div></div>
+    </div>
+    <div class="cs-item">
+      <div class="cs-num">3</div>
+      <div class="cs-body"><div class="cs-h">{{confirm_step3_h}}</div><div class="cs-d">{{confirm_step3_d}}</div></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;align-items:stretch;width:100%;max-width:320px;margin:0 auto;">
+    <button class="btn-secondary btn-grey" onclick="editSubmittedOrder()" style="width:100%;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M7 3l-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      {{edit_order_btn}}
+    </button>
+    <button class="btn-secondary" id="dup-btn" onclick="duplicateOrder()" style="width:100%;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      {{duplicate_btn}}
+    </button>
+    <button class="btn-primary" onclick="closePage()" style="width:100%;justify-content:center;">
+      {{confirm_done_btn}}
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+</div><!-- /view-confirm -->
+
+<!-- ── Auto-close overlay (after "Done — Thank You!") ── -->
+<div class="close-overlay" id="close-overlay">
+  <div class="close-card">
+    <div class="close-ring"><span class="close-count" id="close-count">5</span></div>
+    <div class="close-label" id="close-label">{{closing_auto}}</div>
+  </div>
+  <button class="btn-secondary btn-grey close-edit-btn" onclick="cancelAutoClose()">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M7 3l-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    {{edit_order_btn}}
+  </button>
+</div>
+
+<footer class="site-footer">
+  {{footer_text}}<br>
+  {{footer_contact}} <a href="mailto:info@brandsurface.dk">info@brandsurface.dk</a>
+</footer>
+
+</div><!-- /page -->
+<div id="legal-overlay"></div>
+<div class="toast" id="toast"></div>
+
+<script>/*PRODUCTS_JSON*/</script>
+<script src="/order.client.js"></script>
+</body>
+</html>
