@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { hashPassword } from '@/lib/admin-auth'
 import { genVerifyCode } from '@/lib/customer-auth'
 import { buildVerifyEmail } from '@/lib/customer-emails'
-import { sendEmail, hasMailKey } from '@/lib/brevo'
+import { sendEmail, hasMailKey } from '@/lib/mail'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +17,7 @@ function redirect(req, path) {
 
 async function sendCode(email, code, lang) {
   const { subject, html } = buildVerifyEmail({ code, email, lang })
-  await sendEmail({ to: email, senderName: 'Brandsurface', subject, html })
+  await sendEmail({ to: email, senderName: 'Ordre', subject, html })
 }
 
 export async function POST(req) {

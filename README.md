@@ -7,7 +7,7 @@ mail (with a grace-period delay), two languages and a flexible admin.
 
 - **Next.js 14** (App Router) — frontend + serverless API routes
 - **Supabase** — PostgreSQL database (orders, brands, settings, admin users) + file storage
-- **Brevo** — transactional mail (customer confirmation + delayed, cancellable forwarding)
+- **Resend** — transactional mail (customer confirmation + delayed, cancellable forwarding)
 - **Vercel** — hosting
 
 ## What the customer fills in
@@ -29,8 +29,8 @@ can always go back and edit before submitting.
 Customer fills in the form
   ↓ POST /api/order
 Order saved in Supabase (status: pending)
-  ↓ Brevo → customer confirmation (with Edit link)
-  ↓ Brevo → Brandsurface order email, SCHEDULED after N minutes (admin-configurable grace period)
+  ↓ Resend → customer confirmation (with Edit link)
+  ↓ Resend → Brandsurface order email, SCHEDULED after N minutes (admin-configurable grace period)
   │
   ├── Edit link → /?edit=<id> → form re-loads with all data → resubmit (revision +1, timer resets)
   └── No action → after the delay the order auto-forwards to Brandsurface
@@ -61,11 +61,23 @@ variants and option lists are all editable without code changes.
 2. SQL Editor → run `supabase-schema.sql`, then `admin-schema.sql`
 3. Settings → API → copy the **Project URL** and the **service_role** secret
 
-### 2. Brevo
+### 2. Resend
 
-1. [app.brevo.com](https://app.brevo.com) → SMTP & API → **API Keys** → create a v3 key
-2. Senders, Domains & Dedicated IPs → add & verify your sender address (or the
-   `brandsurface.dk` domain with SPF/DKIM) — Brevo only sends from verified senders
+1. [resend.com](https://resend.com) → **API Keys** → create a key (`re_…`)
+2. Sender address — pick one:
+   - **Testing / no own domain:** leave `SENDER_EMAIL` unset. Mails then go out
+     from Resend's shared `onboarding@resend.dev`, which **only delivers to the
+     email address the Resend account is registered with**. Anything else gets a
+     403 from Resend. Good enough to click through the flow, not for real
+     customers.
+   - **Production:** Domains → add & verify a domain in *this* Resend account
+     (SPF/DKIM), then set `SENDER_EMAIL` to an address on it. A domain can only
+     be verified in one Resend account at a time — if `brandsurface.dk` is
+     already attached to another account, either move it there or verify a
+     separate (sub)domain here.
+
+Display name is `SENDER_NAME` when set; otherwise each mail uses its own neutral
+label (`Ordre`, `Ny ordre`).
 
 ### 3. Environment variables
 
@@ -75,9 +87,9 @@ Copy `.env.example` → `.env.local` (local) or add them in Vercel:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API (service_role) |
-| `BREVO_API_KEY` | Brevo → SMTP & API → API Keys (v3 key) |
-| `SENDER_EMAIL` | Verified Brevo sender, e.g. `ordre@brandsurface.dk` |
-| `SENDER_NAME` | Display name, e.g. `Brandsurface` (optional) |
+| `RESEND_API_KEY` | Resend → API Keys (`re_…`) |
+| `SENDER_EMAIL` | Address on a domain verified in this Resend account (optional — falls back to `onboarding@resend.dev`, owner-only delivery) |
+| `SENDER_NAME` | Display name; overrides the per-mail label when set (optional) |
 | `BRANDSURFACE_EMAIL` | Fallback recipient (also editable in admin) |
 | `ADMIN_SESSION_SECRET` | Long random string (`openssl rand -hex 32`) |
 | `NEXT_PUBLIC_BASE_URL` | Your deployed URL (used in email links) |

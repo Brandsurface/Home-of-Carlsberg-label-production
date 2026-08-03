@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { buildCustomerConfirmEmail, buildBrandsurfaceEmail } from '@/lib/emails'
 import { dispatchToBrandsurface, buildUploadLinks } from '@/lib/dispatch'
-import { sendEmail, cancelScheduled, hasMailKey } from '@/lib/brevo'
+import { sendEmail, cancelScheduled, hasMailKey } from '@/lib/mail'
 
 export const dynamic = 'force-dynamic'
 
@@ -118,7 +118,7 @@ export async function POST(request) {
     }
 
     if (!hasMailKey()) {
-      console.error('BREVO_API_KEY mangler')
+      console.error('RESEND_API_KEY mangler')
       return Response.json({ error: 'Mail-service ikke konfigureret' }, { status: 500 })
     }
 
@@ -128,9 +128,9 @@ export async function POST(request) {
     // 1) Send order confirmation to the customer immediately
     try {
       const { subject, html } = buildCustomerConfirmEmail({ order, baseUrl, delayMinutes })
-      await sendEmail({ to: order.email, senderName: 'Brandsurface', subject, html })
+      await sendEmail({ to: order.email, senderName: 'Ordre', subject, html })
     } catch (mailError) {
-      console.error('Brevo fejl (kundebekræftelse):', mailError?.message)
+      console.error('Resend fejl (kundebekræftelse):', mailError?.message)
       return Response.json({ success: true, orderId: order.id, warning: 'Ordre gemt, men bekræftelsesmail kunne ikke sendes' })
     }
 
@@ -140,22 +140,21 @@ export async function POST(request) {
         await dispatchToBrandsurface(order)
       } else {
         const sendAfter = new Date(Date.now() + delayMinutes * 60 * 1000)
-        const batchId = crypto.randomUUID()
         try {
           const uploadLinks = await buildUploadLinks(order)
           const bs = buildBrandsurfaceEmail({ order: { ...order, uploadLinks } })
-          await sendEmail({
+          // Resend assigns the id — keep it so the send can be cancelled later.
+          const { id } = await sendEmail({
             to: recipient,
             replyTo: order.email,
-            senderName: 'Brandsurface Ordre',
+            senderName: 'Ny ordre',
             subject: bs.subject,
             html: bs.html,
             scheduledAt: sendAfter,
-            batchId,
           })
           await supabase
             .from('orders')
-            .update({ send_after: sendAfter.toISOString(), scheduled_email_id: batchId })
+            .update({ send_after: sendAfter.toISOString(), scheduled_email_id: id })
             .eq('id', order.id)
         } catch (e) {
           console.error('Planlægning af Brandsurface-mail fejlede:', e?.message)
