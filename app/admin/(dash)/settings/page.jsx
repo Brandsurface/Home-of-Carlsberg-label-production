@@ -206,6 +206,11 @@ export default async function AdminSettings({ searchParams }) {
               </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button type="button" id="podio-test-btn" className="a-btn-2">{t.settings_podio_test_btn}</button>
+              <span id="podio-test-result" style={{ fontSize: 13 }}></span>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label className="a-label">{t.settings_podio_employees}</label>
               <EmployeeBuilder initial={employees} name="podio_employees"
@@ -223,6 +228,54 @@ export default async function AdminSettings({ searchParams }) {
       </form>
 
       <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var btn = document.getElementById('podio-test-btn');
+          var result = document.getElementById('podio-test-result');
+          if (!btn) return;
+          var FIELD_LABELS = {
+            job_no: ${JSON.stringify(t.settings_podio_field_jobno)},
+            job_name: ${JSON.stringify(t.settings_podio_field_jobname)},
+            responsible: ${JSON.stringify(t.settings_podio_field_resp)},
+          };
+          var TESTING = ${JSON.stringify(t.settings_podio_testing)};
+          var OK = ${JSON.stringify(t.settings_podio_test_ok)};
+          var OK_APP = ${JSON.stringify(t.settings_podio_test_ok_app)};
+          var MISSING = ${JSON.stringify(t.settings_podio_test_missing)};
+          btn.addEventListener('click', function() {
+            btn.disabled = true;
+            result.style.color = '#7a7672';
+            result.textContent = TESTING;
+            fetch('/api/admin/podio/test', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                appId: document.getElementById('podio-app').value.trim(),
+                fieldJobNo: document.getElementById('pf-jobno').value.trim(),
+                fieldJobName: document.getElementById('pf-jobname').value.trim(),
+                fieldResponsible: document.getElementById('pf-resp').value.trim(),
+              }),
+            })
+              .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, d: d }; }); })
+              .then(function(res) {
+                if (!res.ok) throw new Error(res.d.error || 'Error');
+                var missing = [];
+                var f = res.d.fields || {};
+                Object.keys(FIELD_LABELS).forEach(function(k) {
+                  if (f[k] === false) missing.push(FIELD_LABELS[k]);
+                });
+                result.style.color = missing.length ? '#fbbf24' : '#4ade80';
+                var msg = res.d.appName ? OK_APP.replace('{name}', res.d.appName) : OK;
+                if (missing.length) msg += ' — ' + MISSING.replace('{fields}', missing.join(', '));
+                result.textContent = '✓ ' + msg;
+              })
+              .catch(function(err) {
+                result.style.color = '#f87171';
+                result.textContent = '✗ ' + err.message;
+              })
+              .finally(function() { btn.disabled = false; });
+          });
+        })();
+
         document.querySelectorAll('[data-tag]').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var tag = btn.dataset.tag;
