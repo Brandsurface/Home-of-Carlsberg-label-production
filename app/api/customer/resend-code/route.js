@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { genVerifyCode } from '@/lib/customer-auth'
 import { buildVerifyEmail } from '@/lib/customer-emails'
-import { sendEmail, hasMailKey } from '@/lib/brevo'
+import { sendEmail, hasMailKey } from '@/lib/mail'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +39,7 @@ export async function POST(req) {
           verify_attempts: 0,
         }).eq('id', row.id)
         const { subject, html } = buildVerifyEmail({ code, email, lang })
-        await sendEmail({ to: email, senderName: 'Brandsurface', subject, html })
+        await sendEmail({ to: email, senderName: 'Ordre', subject, html })
       }
     }
   } catch (e) {

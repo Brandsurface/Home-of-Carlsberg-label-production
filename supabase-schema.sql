@@ -48,7 +48,7 @@ create table if not exists orders (
   revision      integer default 0,
   pm_status     text,                   -- internal project-management status
   send_after    timestamptz,           -- when the Brandsurface mail is scheduled
-  scheduled_email_id text,              -- Brevo batchId of the scheduled mail (for cancel)
+  scheduled_email_id text,              -- Resend email id of the scheduled mail (for cancel)
 
   -- Podio job (created from Admin)
   podio_item_id  bigint,

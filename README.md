@@ -7,7 +7,7 @@ mail (with a grace-period delay), two languages and a flexible admin.
 
 - **Next.js 14** (App Router) — frontend + serverless API routes
 - **Supabase** — PostgreSQL database (orders, brands, settings, admin users) + file storage
-- **Brevo** — transactional mail (customer confirmation + delayed, cancellable forwarding)
+- **MailerSend** — transactional mail (customer confirmation + delayed, cancellable forwarding)
 - **Vercel** — hosting
 
 ## What the customer fills in
@@ -29,8 +29,8 @@ can always go back and edit before submitting.
 Customer fills in the form
   ↓ POST /api/order
 Order saved in Supabase (status: pending)
-  ↓ Brevo → customer confirmation (with Edit link)
-  ↓ Brevo → Brandsurface order email, SCHEDULED after N minutes (admin-configurable grace period)
+  ↓ MailerSend → customer confirmation (with Edit link)
+  ↓ MailerSend → Brandsurface order email, SCHEDULED after N minutes (admin-configurable grace period)
   │
   ├── Edit link → /?edit=<id> → form re-loads with all data → resubmit (revision +1, timer resets)
   └── No action → after the delay the order auto-forwards to Brandsurface
@@ -61,11 +61,18 @@ variants and option lists are all editable without code changes.
 2. SQL Editor → run `supabase-schema.sql`, then `admin-schema.sql`
 3. Settings → API → copy the **Project URL** and the **service_role** secret
 
-### 2. Brevo
+### 2. MailerSend
 
-1. [app.brevo.com](https://app.brevo.com) → SMTP & API → **API Keys** → create a v3 key
-2. Senders, Domains & Dedicated IPs → add & verify your sender address (or the
-   `brandsurface.dk` domain with SPF/DKIM) — Brevo only sends from verified senders
+1. [mailersend.com](https://www.mailersend.com) → **API Tokens** → create a
+   token with `email-full` access
+2. **Domains** → add & verify `brandsurface.dk` (or a subdomain) — SPF/DKIM
+   records shown in the dashboard. Sending fails until this is done; unlike
+   Resend there is no shared test sender to fall back to.
+3. Set `SENDER_EMAIL` to an address on the verified domain (e.g.
+   `ordre@brandsurface.dk`).
+
+Display name is `SENDER_NAME` when set; otherwise each mail uses its own neutral
+label (`Ordre`, `Ny ordre`).
 
 ### 3. Environment variables
 
@@ -75,9 +82,9 @@ Copy `.env.example` → `.env.local` (local) or add them in Vercel:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API (service_role) |
-| `BREVO_API_KEY` | Brevo → SMTP & API → API Keys (v3 key) |
-| `SENDER_EMAIL` | Verified Brevo sender, e.g. `ordre@brandsurface.dk` |
-| `SENDER_NAME` | Display name, e.g. `Brandsurface` (optional) |
+| `MAILERSEND_API_KEY` | MailerSend → API Tokens |
+| `SENDER_EMAIL` | Address on a domain verified in MailerSend (required — no test-sender fallback) |
+| `SENDER_NAME` | Display name; overrides the per-mail label when set (optional) |
 | `BRANDSURFACE_EMAIL` | Fallback recipient (also editable in admin) |
 | `ADMIN_SESSION_SECRET` | Long random string (`openssl rand -hex 32`) |
 | `NEXT_PUBLIC_BASE_URL` | Your deployed URL (used in email links) |
