@@ -2,17 +2,12 @@
 
 const T = window.__T || {};
 const LANG = window.__LANG || 'en';
-const VARIANTS = window.__VARIANTS || {};                 // { "Tuborg": ["Classic", ...], ... }
-const PANT_EXEMPT = (window.__PANT_EXEMPT || 'Border');   // region that hides the deposit mark
 
 // ── State ──
 const state = {
   brand: null,        // brand name, '' = "I don't know yet"
   brandUnknown: false,
-  variant: '',
   size: '',
-  region: '',
-  labelType: '',
   artwork: false,
   smash: false,
 };
@@ -110,23 +105,7 @@ function selectBrand(el) {
   el.classList.add('selected');
   state.brandUnknown = el.dataset.unknown === '1';
   state.brand = state.brandUnknown ? '' : (el.dataset.brand || '');
-  populateVariants();
   document.getElementById('err-brand')?.classList.remove('show');
-}
-
-function populateVariants() {
-  const sel = document.getElementById('variant');
-  if (!sel) return;
-  const prev = state.variant;
-  const list = (!state.brandUnknown && state.brand && Array.isArray(VARIANTS[state.brand])) ? VARIANTS[state.brand] : [];
-  let html = `<option value="">${escHtml(T.variant_ph || 'Choose variant…')}</option>`;
-  list.forEach(v => { html += `<option value="${escHtml(v)}">${escHtml(v)}</option>`; });
-  html += `<option value="__unknown__">${escHtml(T.brand_unknown || "I don't know yet")}</option>`;
-  sel.innerHTML = html;
-  sel.disabled = false;
-  // keep previous selection if still valid
-  if (prev && (prev === '__unknown__' || list.includes(prev))) sel.value = prev;
-  else { sel.value = ''; state.variant = ''; }
 }
 
 // ── Segmented controls ──
@@ -136,33 +115,19 @@ function selectSize(el) {
   state.size = el.dataset.size || '';
   document.getElementById('err-size')?.classList.remove('show');
 }
-function selectRegion(el) {
-  document.querySelectorAll('#region-seg .seg-btn.selected').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  state.region = el.dataset.region || '';
-  updatePantmaerke();
-}
-function selectLabelType(el) {
-  document.querySelectorAll('#labeltype-seg .seg-btn.selected').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  state.labelType = el.dataset.labeltype || '';
-  // Finish options are identical for both print types, so keep the current pick.
-  populateFinish(state.labelType, document.getElementById('finish')?.value || '');
-  updatePaperVisibility();
-}
-// Finish options depend on the print type. Nothing is pre-selected unless `selectVal`
-// is passed (used when restoring a saved order) and is valid for the print type.
-function populateFinish(printType, selectVal) {
+// Finish options. Nothing is pre-selected unless `selectVal` is passed (used
+// when restoring a saved order) and is still a valid option.
+function populateFinish(selectVal) {
   const sel = document.getElementById('finish');
   if (!sel) return;
-  const opts = (window.__FINISHES && window.__FINISHES[printType]) || [];
+  const opts = window.__FINISHES || [];
   const keep = selectVal && opts.indexOf(selectVal) !== -1;
   sel.innerHTML = `<option value="" disabled${keep ? '' : ' selected'} hidden>${escHtml(T.finish_ph || 'Choose finish…')}</option>` +
     opts.map(o => `<option value="${escHtml(o)}"${o === selectVal ? ' selected' : ''}>${escHtml(o)}</option>`).join('');
   sel.classList.remove('error');
 }
-// Paper applies to the "Label" print type only. Nothing is pre-selected unless a
-// valid `selectVal` is passed (used when restoring a saved order).
+// Paper options. Nothing is pre-selected unless a valid `selectVal` is passed
+// (used when restoring a saved order).
 function populatePaper(selectVal) {
   const sel = document.getElementById('paper');
   if (!sel) return;
@@ -171,25 +136,6 @@ function populatePaper(selectVal) {
   sel.innerHTML = `<option value="" disabled${keep ? '' : ' selected'} hidden>${escHtml(T.paper_ph || 'Choose paper…')}</option>` +
     opts.map(o => `<option value="${escHtml(o)}"${o === selectVal ? ' selected' : ''}>${escHtml(o)}</option>`).join('');
   sel.classList.remove('error');
-}
-// Show/hide the paper column only; Finish stays visible in the same row regardless.
-function updatePaperVisibility() {
-  const paperField = document.getElementById('paper-field');
-  if (!paperField) return;
-  const show = state.labelType === 'Label';
-  paperField.hidden = !show;
-  if (!show) {
-    const sel = document.getElementById('paper');
-    if (sel) { sel.value = ''; sel.classList.remove('error'); }
-    document.getElementById('err-paper')?.classList.remove('show');
-  }
-}
-// Hide/omit the deposit mark when the exempt region (e.g. Border) is chosen
-function updatePantmaerke() {
-  const card = document.getElementById('pantmaerke-card');
-  if (!card) return;
-  const exempt = state.region && state.region.toLowerCase() === String(PANT_EXEMPT).toLowerCase();
-  card.classList.toggle('hidden', exempt);
 }
 
 // ── Toggles ──
@@ -210,10 +156,10 @@ function toggleSmash() {
 
 // ── File uploads (direct to Supabase Storage via signed URL) ──
 const MAX_UPLOAD = 50 * 1024 * 1024;
-const UPLOAD_SLOTS = ['cutterguide', 'ingredients', 'additional', 'artwork'];
+const UPLOAD_SLOTS = ['ingredients', 'additional', 'artwork'];
 // Translation keys + fallbacks for each upload category header (review + flow).
-const UPLOAD_SLOT_LABEL_KEY = { cutterguide: 'upload_cat_cutterguide', ingredients: 'upload_cat_ingredients', additional: 'upload_cat_additional', artwork: 'upload_cat_artwork' };
-const UPLOAD_SLOT_FALLBACK = { cutterguide: 'Cutterguide', ingredients: 'Ingredients & nutrition', additional: 'Additional information', artwork: 'Artwork' };
+const UPLOAD_SLOT_LABEL_KEY = { ingredients: 'upload_cat_ingredients', additional: 'upload_cat_additional', artwork: 'upload_cat_artwork' };
+const UPLOAD_SLOT_FALLBACK = { ingredients: 'Ingredients & nutrition', additional: 'Additional information', artwork: 'Artwork' };
 // Group uploaded files under their slot, keeping the slot display order.
 function groupUploadsBySlot(files) {
   return UPLOAD_SLOTS
@@ -251,7 +197,7 @@ async function handleFiles(input) {
 }
 function removeUpload(i) { uploadedFiles.splice(i, 1); renderUploads(); }
 // Render each uploaded file as an icon card in the box belonging to the button it
-// was attached with (cutterguide / ingredients / additional / artwork).
+// was attached with (ingredients / additional / artwork).
 function renderUploads() {
   const buckets = {};
   UPLOAD_SLOTS.forEach(s => { buckets[s] = ''; });
@@ -295,6 +241,13 @@ function validate() {
   if (!state.size) { document.getElementById('err-size')?.classList.add('show'); ok = false; }
   else document.getElementById('err-size')?.classList.remove('show');
 
+  // Quantity required
+  const quantityEl = document.getElementById('quantity');
+  const quantityMissing = !quantityEl || !quantityEl.value.trim();
+  quantityEl?.classList.toggle('error', quantityMissing);
+  document.getElementById('err-quantity')?.classList.toggle('show', quantityMissing);
+  if (quantityMissing) ok = false;
+
   // Finish required (no longer pre-selected)
   const finishSel = document.getElementById('finish');
   const finishMissing = !finishSel || !finishSel.value;
@@ -302,18 +255,12 @@ function validate() {
   document.getElementById('err-finish')?.classList.toggle('show', finishMissing);
   if (finishMissing) ok = false;
 
-  // Paper required when the print type is Label (the field is hidden for Can)
-  const paperField = document.getElementById('paper-field');
+  // Paper required
   const paperSel = document.getElementById('paper');
-  if (paperField && !paperField.hidden) {
-    const paperMissing = !paperSel || !paperSel.value;
-    paperSel?.classList.toggle('error', paperMissing);
-    document.getElementById('err-paper')?.classList.toggle('show', paperMissing);
-    if (paperMissing) ok = false;
-  } else {
-    paperSel?.classList.remove('error');
-    document.getElementById('err-paper')?.classList.remove('show');
-  }
+  const paperMissing = !paperSel || !paperSel.value;
+  paperSel?.classList.toggle('error', paperMissing);
+  document.getElementById('err-paper')?.classList.toggle('show', paperMissing);
+  if (paperMissing) ok = false;
 
   // GDPR consent
   const legalActive = document.getElementById('legal-toggle').classList.contains('active');
@@ -326,12 +273,7 @@ function validate() {
 
 // ── Collect the can brief ──
 function collectPayload() {
-  const variantSel = document.getElementById('variant');
-  let variant = '';
-  if (variantSel && variantSel.value) variant = variantSel.value === '__unknown__' ? (T.brand_unknown || "I don't know yet") : variantSel.value;
-
-  const exempt = state.region && state.region.toLowerCase() === String(PANT_EXEMPT).toLowerCase();
-  const pantmaerke = exempt ? false : !!document.getElementById('pantmaerke')?.checked;
+  const pantmaerke = !!document.getElementById('pantmaerke')?.checked;
 
   return {
     butiksnavn:    g('butiksnavn'),
@@ -340,18 +282,15 @@ function collectPayload() {
     delivery_date: g('delivery_date') || null,
 
     brand:         state.brandUnknown ? (T.brand_unknown || "I don't know yet") : state.brand,
-    variant,
+    variant:       g('variant'),
     size:          state.size,
-    region:        state.region,
-    label_type:    state.labelType,
-    cutterguide:   g('cutterguide'),
+    quantity:      g('quantity'),
+    label_type:    'Label',
     finish:        g('finish'),
     paper:         g('paper'),
     energy_kj:     g('energy_kj'),
     energy_kcal:   g('energy_kcal'),
     units:         g('units'),
-    material_old:  g('material_old'),
-    material_new:  g('material_new'),
     ean:           g('ean'),
     pantmaerke,
     ingredients:   serializeRich(document.getElementById('ingredients')),
@@ -375,7 +314,6 @@ function rvRow(label, val, cls) {
 function goToReview() {
   if (!validate()) return;
   const p = collectPayload();
-  const exempt = p.region && p.region.toLowerCase() === String(PANT_EXEMPT).toLowerCase();
   const energyStr = [p.energy_kj && (p.energy_kj + ' kJ'), p.energy_kcal && (p.energy_kcal + ' kcal')].filter(Boolean).join(' / ');
 
   const orderer = [
@@ -387,22 +325,18 @@ function goToReview() {
 
   const can = [
     rvRow(T.f_brand || 'Brand', p.brand),
-    rvRow(T.f_variant || 'Variant', p.variant),
+    rvRow(T.f_variant || 'Description', p.variant),
     rvRow(T.f_size || 'Size', p.size),
-    rvRow(T.f_region || 'Region', p.region),
-    rvRow(T.f_label_type || 'Label type', p.label_type),
-    (p.paper ? rvRow(T.f_paper || 'Paper', p.paper) : ''),
+    rvRow(T.f_quantity || 'Quantity', p.quantity),
+    rvRow(T.f_paper || 'Paper', p.paper),
     rvRow(T.f_finish || 'Finish', p.finish),
     rvRow(T.f_energy || 'Energy / 100 ml', energyStr),
     rvRow(T.f_units || 'Number of units', p.units),
-    rvRow(T.f_cutterguide || 'Cutterguide', p.cutterguide, { full: true }),
   ].join('');
 
   const production = [
-    rvRow(T.f_material_old || 'Material no. (old)', p.material_old),
-    rvRow(T.f_material_new || 'Material no. (new)', p.material_new),
     rvRow(T.f_ean || 'EAN', p.ean),
-    exempt ? '' : rvRow(T.f_pantmaerke || 'Deposit mark', p.pantmaerke ? (T.rv_yes || 'Yes') : (T.rv_no || 'No')),
+    rvRow(T.f_pantmaerke || 'Deposit mark', p.pantmaerke ? (T.rv_yes || 'Yes') : (T.rv_no || 'No')),
     p.ingredients ? rvRow(T.f_ingredients || 'Ingredients', richToSafeHtml(p.ingredients), { full: true, mod: 'pre', html: true }) : '',
     (p.ingredients && extractBold(p.ingredients).length) ? rvRow(T.f_ingredients_marked || 'Marked in bold', extractBold(p.ingredients).join(', '), { full: true }) : '',
   ].join('');
@@ -563,32 +497,19 @@ async function prefillFromOrder(orderId, asCopy = false) {
       }
       if (!tile) tile = document.querySelector('.brand-tile.unknown');
       if (tile) selectBrand(tile);
-      if (d.variant) {
-        const sel = document.getElementById('variant');
-        if (d.variant === unknownText) sel.value = '__unknown__';
-        else if (Array.from(sel.options).some(o => o.value === d.variant)) sel.value = d.variant;
-        state.variant = sel.value;
-      }
+      if (d.variant) { const el = document.getElementById('variant'); if (el) el.value = d.variant === unknownText ? '' : d.variant; }
     }
 
     // Size
     if (d.size) { const c = Array.from(document.querySelectorAll('#size-chips .size-chip')).find(x => x.dataset.size === d.size); if (c) selectSize(c); }
-    // Region
-    if (d.region) { const b = Array.from(document.querySelectorAll('#region-seg .seg-btn')).find(x => x.dataset.region === d.region); if (b) selectRegion(b); }
-    // Print type (legacy "Tryk" orders map to "Can")
-    if (d.label_type) { const lt = d.label_type === 'Tryk' ? 'Can' : d.label_type; const b = Array.from(document.querySelectorAll('#labeltype-seg .seg-btn')).find(x => x.dataset.labeltype === lt); if (b) selectLabelType(b); }
-    // Finish — repopulate for the current print type and restore the saved value if valid
-    if (d.finish) populateFinish(state.labelType, d.finish);
-    // Paper — show/hide for the current print type and restore the saved value if present
-    updatePaperVisibility();
+    if (d.quantity) document.getElementById('quantity').value = d.quantity;
+    // Finish — restore the saved value if still valid
+    if (d.finish) populateFinish(d.finish);
     if (d.paper) populatePaper(d.paper);
 
-    if (d.cutterguide) document.getElementById('cutterguide').value = d.cutterguide;
     if (d.energy_kj) document.getElementById('energy_kj').value = d.energy_kj;
     if (d.energy_kcal) document.getElementById('energy_kcal').value = d.energy_kcal;
     if (d.units) document.getElementById('units').value = d.units;
-    if (d.material_old) document.getElementById('material_old').value = d.material_old;
-    if (d.material_new) document.getElementById('material_new').value = d.material_new;
     if (d.ean) document.getElementById('ean').value = d.ean;
     const pant = document.getElementById('pantmaerke'); if (pant) pant.checked = !!d.pantmaerke;
     const ingEl = document.getElementById('ingredients');
@@ -599,7 +520,6 @@ async function prefillFromOrder(orderId, asCopy = false) {
     if (d.smash_link && !state.smash) toggleSmash();
     if (Array.isArray(d.uploads)) { uploadedFiles = d.uploads.map(f => ({ ...f, slot: f.slot || 'artwork' })); renderUploads(); }
 
-    updatePantmaerke();
     showToast(asCopy ? (T.toast_order_copied || 'Order copied — review and submit as a new order.')
                      : (T.toast_order_loaded || 'Order loaded — edit and resubmit'), '');
   } catch (err) {
@@ -750,13 +670,8 @@ window.addEventListener('scroll', tourPlace, true);
     if (document.getElementById('pill-1').classList.contains('done')) goBack();
   });
 
-  // Read server-rendered default selections into state
-  state.region = document.querySelector('#region-seg .seg-btn.selected')?.dataset.region || '';
-  state.labelType = document.querySelector('#labeltype-seg .seg-btn.selected')?.dataset.labeltype || '';
-  populateFinish(state.labelType);
+  populateFinish();
   populatePaper();
-  updatePaperVisibility();
-  updatePantmaerke();
 
   // Ingredients rich-text: live marked list + bold-button state
   const ingEl = document.getElementById('ingredients');

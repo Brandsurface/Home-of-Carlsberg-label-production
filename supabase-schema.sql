@@ -21,18 +21,19 @@ create table if not exists orders (
 
   -- The can brief
   brand         text,
-  variant       text,
+  variant       text,                   -- free-text description
   size          text,
-  region        text,                   -- 'DK' | 'Border'
-  label_type    text,                   -- 'Label' | 'Tryk'
-  cutterguide   text,
+  quantity      text,
+  region        text,                   -- legacy: 'DK' | 'Border' — no longer collected
+  label_type    text,                   -- fixed to 'Label'; legacy rows may say 'Tryk'
+  cutterguide   text,                   -- legacy — no longer collected
   finish        text,                   -- 'Mat' | 'Gloss' | 'To be confirmed'
-  paper         text,                   -- Label only: 'White' | 'Metallic' | 'Transparent' | 'To be confirmed'
+  paper         text,                   -- 'Metallic' (more paper types to follow)
   energy_kj     text,                   -- energy per 100 ml (kJ)
   energy_kcal   text,                   -- energy per 100 ml (kcal)
   units         text,                   -- number of units (genstande)
-  material_old  text,
-  material_new  text,
+  material_old  text,                   -- legacy — no longer collected
+  material_new  text,                   -- legacy — no longer collected
   ean           text,
   pantmaerke    boolean default false,  -- deposit mark (required for DK, n/a for Border)
   ingredients   text,                   -- ingredients & nutritional content (free text or "see file")
@@ -61,6 +62,7 @@ create table if not exists orders (
 alter table orders add column if not exists brand        text;
 alter table orders add column if not exists variant      text;
 alter table orders add column if not exists size         text;
+alter table orders add column if not exists quantity     text;
 alter table orders add column if not exists region       text;
 alter table orders add column if not exists label_type   text;
 alter table orders add column if not exists cutterguide  text;

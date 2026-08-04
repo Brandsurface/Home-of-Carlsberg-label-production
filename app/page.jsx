@@ -8,6 +8,11 @@ import { BG_KEYS, buildBackgroundCss, buildBackgroundLayers } from '@/lib/backgr
 
 export const dynamic = 'force-dynamic'
 
+// Print type is fixed to "Label" — Finish and Paper are fixed in code.
+const SIZES_FALLBACK = ['33 cl', '44 cl']
+const FINISH_OPTS = ['Mat', 'Gloss', 'To be confirmed']
+const PAPER_OPTS = ['Metallic'] // more paper types will be added here later
+
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -31,7 +36,7 @@ async function loadData(t) {
     const [{ data: brandRows }, { data: settingRows }] = await Promise.all([
       supabase.from('brands').select('name, variants, active, sort').eq('active', true).order('sort', { ascending: true }),
       supabase.from('app_settings').select('key, value').in('key', [
-        'sizes', 'regions', 'pantmaerke_exempt_region', 'help_box_active', 'help_box_html',
+        'sizes', 'help_box_active', 'help_box_html',
         'hero_title_en', 'hero_title_da', 'hero_sub_en', 'hero_sub_da',
         'op_label_en', 'op_label_da', 'op_sub_en', 'op_sub_da',
         'op_step1_title_en', 'op_step1_title_da', 'op_step1_p_en', 'op_step1_p_da',
@@ -47,46 +52,27 @@ async function loadData(t) {
     console.error('Kunne ikke hente formular-data:', e?.message)
   }
 
-  const sizes = parseList(settings.sizes, ['250 ml', '330 ml', '330 ml slim', '440 ml', '500 ml'])
-  const regions = parseList(settings.regions, ['DK', 'Border'])
-  const pantExempt = settings.pantmaerke_exempt_region || 'Border'
+  const sizes = parseList(settings.sizes, SIZES_FALLBACK)
 
-  // Print type, paper and finish are fixed in code. Finish applies to both print
-  // types; paper only applies to Label.
-  const labelTypes = ['Label', 'Can']
-  const finishMap = {
-    Label: ['Mat', 'Gloss', 'To be confirmed'],
-    Can: ['Mat', 'Gloss', 'To be confirmed'],
-  }
-  const paperOpts = ['White', 'Metallic', 'Transparent', 'To be confirmed']
-
-  // Brand tiles + variants map
-  const variantsMap = {}
+  // Brand tiles
   let brandTiles = ''
   for (const b of brands) {
-    const variants = Array.isArray(b.variants) ? b.variants : []
-    variantsMap[b.name] = variants
     brandTiles += `<button type="button" class="brand-tile" data-brand="${esc(b.name)}" onclick="selectBrand(this)"><span class="brand-radio"></span><span class="brand-name">${esc(b.name)}</span></button>`
   }
   brandTiles += `<button type="button" class="brand-tile unknown" data-unknown="1" onclick="selectBrand(this)"><span class="brand-radio"></span><span class="brand-name">${esc(t.brand_unknown)}</span></button>`
 
   const sizeChips = sizes.map(s => `<button type="button" class="size-chip" data-size="${esc(s)}" onclick="selectSize(this)">${esc(s)}</button>`).join('')
-  const regionSeg = regions.map((r, i) => `<button type="button" class="seg-btn${i === 0 ? ' selected' : ''}" data-region="${esc(r)}" onclick="selectRegion(this)">${esc(r)}</button>`).join('')
-  const labelSeg = labelTypes.map((l, i) => `<button type="button" class="seg-btn${i === 0 ? ' selected' : ''}" data-labeltype="${esc(l)}" onclick="selectLabelType(this)">${esc(l)}</button>`).join('')
-  // No finish pre-selected: a disabled placeholder + the default print type's options.
+  // Nothing pre-selected: a disabled placeholder + the fixed options.
   const finishOpts = `<option value="" disabled selected hidden>${esc(t.finish_ph)}</option>` +
-    (finishMap[labelTypes[0]] || []).map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('')
-  // No paper pre-selected: a disabled placeholder + the paper options (Label only).
+    FINISH_OPTS.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('')
   const paperOptsHtml = `<option value="" disabled selected hidden>${esc(t.paper_ph)}</option>` +
-    paperOpts.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('')
+    PAPER_OPTS.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('')
 
   const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '')
   const dataScript =
-    `window.__VARIANTS=${JSON.stringify(variantsMap).replace(/</g, '\\u003c')};` +
     `window.__SUPABASE_URL=${JSON.stringify(supabaseUrl)};` +
-    `window.__PANT_EXEMPT=${JSON.stringify(pantExempt)};` +
-    `window.__FINISHES=${JSON.stringify(finishMap).replace(/</g, '\\u003c')};` +
-    `window.__PAPERS=${JSON.stringify(paperOpts).replace(/</g, '\\u003c')};`
+    `window.__FINISHES=${JSON.stringify(FINISH_OPTS).replace(/</g, '\\u003c')};` +
+    `window.__PAPERS=${JSON.stringify(PAPER_OPTS).replace(/</g, '\\u003c')};`
 
   const opKeys = [
     'op_label_en', 'op_label_da', 'op_sub_en', 'op_sub_da',
@@ -108,7 +94,7 @@ async function loadData(t) {
     layers: buildBackgroundLayers(settings),
   }
 
-  return { brandTiles, sizeChips, regionSeg, labelSeg, finishOpts, paperOptsHtml, dataScript, helpBox: buildHelpBox(settings), heroOverrides, background }
+  return { brandTiles, sizeChips, finishOpts, paperOptsHtml, dataScript, helpBox: buildHelpBox(settings), heroOverrides, background }
 }
 
 function buildHelpBox(settings) {
@@ -125,7 +111,7 @@ export default async function Home() {
   const filePath = path.join(process.cwd(), 'app', 'page.html')
   let html = fs.readFileSync(filePath, 'utf-8')
 
-  const { brandTiles, sizeChips, regionSeg, labelSeg, finishOpts, paperOptsHtml, dataScript, helpBox, heroOverrides, background } = await loadData(t)
+  const { brandTiles, sizeChips, finishOpts, paperOptsHtml, dataScript, helpBox, heroOverrides, background } = await loadData(t)
 
   if (heroOverrides.hero_title_en && lang === 'en') t.hero_title = heroOverrides.hero_title_en
   if (heroOverrides.hero_title_da && lang === 'da') t.hero_title = heroOverrides.hero_title_da
@@ -178,8 +164,6 @@ export default async function Home() {
 
   html = html.replace('<!--BRAND_TILES-->', brandTiles)
   html = html.replace('<!--SIZE_CHIPS-->', sizeChips)
-  html = html.replace('<!--REGION_SEG-->', regionSeg)
-  html = html.replace('<!--LABELTYPE_SEG-->', labelSeg)
   html = html.replace('<!--FINISH_OPTIONS-->', finishOpts)
   html = html.replace('<!--PAPER_OPTIONS-->', paperOptsHtml)
   html = html.replace(/\s*<!--HELP_BOX-->/, helpBox)

@@ -22,7 +22,7 @@ function fmtTime(iso, locale) {
 }
 
 function canSummary(o) {
-  const parts = [o.brand, o.variant, o.size, o.region].filter(Boolean)
+  const parts = [o.brand, o.variant, o.size, o.quantity].filter(Boolean)
   return parts.length ? parts.join(' · ') : '—'
 }
 
@@ -59,7 +59,7 @@ export default async function AdminOrders({ searchParams }) {
 
   const { data: orders, error } = await supabase
     .from('orders')
-    .select('id, created_at, status, butiksnavn, navn, email, brand, variant, size, region, revision, send_after, uploads, pm_status')
+    .select('id, created_at, status, butiksnavn, navn, email, brand, variant, size, quantity, revision, send_after, uploads, pm_status')
     .order('created_at', { ascending: false })
     .limit(200)
 

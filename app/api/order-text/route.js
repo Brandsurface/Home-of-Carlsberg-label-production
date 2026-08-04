@@ -81,6 +81,7 @@ export async function GET(request) {
       row('Brand', o.brand),
       row('Variant', o.variant),
       row('Size', o.size),
+      row('Quantity', o.quantity),
       row('Region', o.region),
       row('Print Type', o.label_type),
       row('Paper', o.paper),

@@ -129,11 +129,7 @@
         </div>
         <div class="field" style="margin-top:18px;">
           <label>{{variant_label}}</label>
-          <div class="select-wrap">
-            <select id="variant" disabled>
-              <option value="">{{variant_ph}}</option>
-            </select>
-          </div>
+          <input type="text" id="variant" placeholder="{{variant_ph}}"/>
         </div>
       </div>
 
@@ -147,15 +143,10 @@
           <div class="field-error" id="err-size">{{size_err}}</div>
         </div>
 
-        <div class="row-2" style="margin-top:18px;">
-          <div class="field">
-            <label>{{region_label}} <span class="req">*</span></label>
-            <div class="segmented" id="region-seg"><!--REGION_SEG--></div>
-          </div>
-          <div class="field">
-            <label>{{label_type_label}} <span class="req">*</span></label>
-            <div class="segmented" id="labeltype-seg"><!--LABELTYPE_SEG--></div>
-          </div>
+        <div class="field" style="margin-top:18px;">
+          <label>{{quantity_label}} <span class="req">*</span></label>
+          <input type="text" id="quantity" inputmode="numeric" placeholder="{{quantity_ph}}"/>
+          <div class="field-error" id="err-quantity">{{quantity_err}}</div>
         </div>
 
         <div class="row-2" id="paper-row" style="margin-top:18px;">
@@ -175,37 +166,13 @@
           </div>
         </div>
 
-        <div class="row-2" style="margin-top:18px;">
-          <div class="field">
-            <label>{{cutterguide_label}}</label>
-            <div class="input-attach">
-              <input type="text" id="cutterguide" placeholder="{{cutterguide_ph}}"/>
-              <button type="button" class="attach-icon-btn" title="{{attach_btn}}" onclick="pickFiles('cutterguide')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              </button>
-            </div>
-            <div class="upload-list" id="upload-list-cutterguide"></div>
-          </div>
-        </div>
-
       </div>
 
       <!-- 3 · Production details -->
       <div class="card">
         <div class="card-label"><span class="card-num">3</span>{{card_production_label}}</div>
 
-        <div class="row-2">
-          <div class="field">
-            <label>{{material_old_label}}</label>
-            <input type="text" id="material_old"/>
-          </div>
-          <div class="field">
-            <label>{{material_new_label}}</label>
-            <input type="text" id="material_new"/>
-          </div>
-        </div>
-
-        <div class="field" style="margin-top:16px;">
+        <div class="field">
           <label>{{ean_label}}</label>
           <input type="text" id="ean" placeholder="{{ean_ph}}"/>
         </div>
