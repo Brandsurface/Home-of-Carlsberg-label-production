@@ -12,7 +12,7 @@ export default async function AdminSettings({ searchParams }) {
     .from('app_settings')
     .select('key, value')
     .in('key', ['brandsurface_email', 'confirm_delay_minutes', 'help_box_active', 'help_box_html',
-      'hero_title_en', 'hero_title_da', 'hero_sub_en', 'hero_sub_da',
+      'hero_title_en', 'hero_title_da', 'hero_sub_en', 'hero_sub_da', 'hero_title_color', 'hero_sub_color',
       'op_label_en', 'op_label_da', 'op_sub_en', 'op_sub_da',
       'op_step1_title_en', 'op_step1_title_da', 'op_step1_p_en', 'op_step1_p_da',
       'op_step2_title_en', 'op_step2_title_da', 'op_step2_p_en', 'op_step2_p_da',
@@ -114,6 +114,20 @@ export default async function AdminSettings({ searchParams }) {
                 defaultValue={map.hero_sub_da || ''}
                 placeholder="Vælg mærke, angiv de tekniske specifikationer og udfyld detaljerne…"
                 style={{ fontFamily: "'DM Mono',monospace", fontSize: 13, resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="a-label" htmlFor="hero-title-color">{t.settings_hero_title_color}</label>
+                <input id="hero-title-color" type="color" name="hero_title_color"
+                  defaultValue={/^#[0-9a-fA-F]{6}$/.test(map.hero_title_color) ? map.hero_title_color : '#f1562e'}
+                  style={{ width: '100%', height: 40, padding: 2, background: '#242220', border: '1px solid #4a4640', borderRadius: 10, cursor: 'pointer' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="a-label" htmlFor="hero-sub-color">{t.settings_hero_sub_color}</label>
+                <input id="hero-sub-color" type="color" name="hero_sub_color"
+                  defaultValue={/^#[0-9a-fA-F]{6}$/.test(map.hero_sub_color) ? map.hero_sub_color : '#aebdb3'}
+                  style={{ width: '100%', height: 40, padding: 2, background: '#242220', border: '1px solid #4a4640', borderRadius: 10, cursor: 'pointer' }} />
+              </div>
             </div>
           </div>
 
