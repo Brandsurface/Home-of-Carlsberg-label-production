@@ -54,8 +54,6 @@ export async function POST(req) {
     const now = new Date().toISOString()
     const rows = [
       { key: 'sizes', value: JSON.stringify(parseStringArray(form.get('sizes'))), updated_at: now },
-      { key: 'regions', value: JSON.stringify(parseStringArray(form.get('regions'))), updated_at: now },
-      { key: 'pantmaerke_exempt_region', value: String(form.get('pantmaerke_exempt_region') || '').trim(), updated_at: now },
     ]
     const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' })
     return back(req, error ? 'error' : 'opts-saved')

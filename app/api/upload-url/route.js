@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 export const dynamic = 'force-dynamic'
 
 const BUCKET = 'order-uploads'
-const ALLOWED = ['pdf', 'ai', 'eps', 'psd', 'indd', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'tif', 'tiff', 'zip', 'mp4']
+const ALLOWED = ['pdf', 'ai', 'eps', 'psd', 'indd', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'tif', 'tiff', 'zip', 'mp4', 'xls', 'xlsx']
 
 // Mint a short-lived signed URL the browser can PUT a file directly to,
 // so large files never pass through the (size-limited) serverless function.

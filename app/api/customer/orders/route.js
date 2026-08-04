@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('orders')
-    .select('id, created_at, status, butiksnavn, brand, variant, size, region, revision, send_after')
+    .select('id, created_at, status, butiksnavn, brand, variant, size, quantity, revision, send_after')
     .ilike('email', me.email) // case-insensitive exact (me.email is lowercased)
     .order('created_at', { ascending: false })
     .limit(200)

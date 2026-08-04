@@ -42,19 +42,13 @@ insert into app_settings (key, value) values ('help_box_html', '')
 
 -- ── Editable option lists for the can form (JSON arrays) ──
 insert into app_settings (key, value)
-  values ('sizes', '["250 ml","330 ml","330 ml slim","440 ml","500 ml"]')
-  on conflict (key) do nothing;
-insert into app_settings (key, value)
-  values ('regions', '["DK","Border"]')
+  values ('sizes', '["33 cl","44 cl"]')
   on conflict (key) do nothing;
 insert into app_settings (key, value)
   values ('label_types', '["Label","Tryk"]')
   on conflict (key) do nothing;
 insert into app_settings (key, value)
   values ('finishes', '["Mat","Gloss","To be confirmed"]')
-  on conflict (key) do nothing;
--- Selecting this region hides/omits the deposit mark (Pantmærke).
-insert into app_settings (key, value) values ('pantmaerke_exempt_region', 'Border')
   on conflict (key) do nothing;
 
 -- ── Editable hero text (page title + description, per language) ──
@@ -104,18 +98,15 @@ create table if not exists brands (
   created_at  timestamptz default now()
 );
 
--- Seed the brand catalogue (only when the table is still empty)
+-- Seed the brand catalogue (only when the table is still empty).
+-- Variant is now a free-text field on the form, not a per-brand dropdown, so
+-- brands no longer need a seeded variants list.
 insert into brands (name, variants, sort)
 select v.name, v.variants::jsonb, v.sort
 from (values
-  ('Tuborg',    '["Classic","Fine Festival","Grøn","Guld","Sprød","Twist","Sunsæt","Rød","Julebryg","Påskebryg"]', 10),
-  ('Carlsberg', '["IPA","1883","Carls Jul","Carls Special","Carlsberg 47","Elephant","Nordic","Nordlyst","Pilsner","Sort Guld","Gamle Carlsberg","Gl. Carlsberg Porter","Master Brew"]', 20),
-  ('Mikkeller', '["Big bad Pilsner","Blanche de Mikkeller","Burst IPA","Burst Free IPA","Drink''in the Sun","Drink''in the Winter","Golden Iris","Hop Hop IPA","Iskold Classic","Japanese Lager","Limbo Raspberry","Peach Out","Weird Weather","Windy Hill"]', 30),
-  ('Jacobsen',  '["Brown Ale","Saaz Blonde","Barbaras Easy IPA","El Dorado IPA","Juicy IPA","Juletid IPA","Yakima","Yakima Økologisk","Golden Naked Christmas Ale","Påske Pale Ale"]', 40),
-  ('Somersby',  '[]', 50),
-  ('Grimbergen','["Belgian Pale Ale","Quadrupel","Tripe D''Abbaye","Blanche","Blonde","Double Ambreé","Noël"]', 60),
-  ('Brooklyn',  '["Special Effects","Lager","East India","Bel Air Sour","Parktime IPA","Pilsner","Playa De Brooklyn","Pulp Art","Stonewall Inn IPA","Timemachine"]', 70),
-  ('1664',      '["Blanc","Biere","Blanc 0,0"]', 80)
+  ('Carlsberg', '[]', 10),
+  ('Jacobsen',  '[]', 20),
+  ('Mikkeller', '[]', 30)
 ) as v(name, variants, sort)
 where not exists (select 1 from brands);
 

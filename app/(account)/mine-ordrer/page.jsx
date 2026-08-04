@@ -7,7 +7,7 @@ import { getCustomerUser } from '@/lib/customer-auth'
 export const dynamic = 'force-dynamic'
 
 function canSummary(o) {
-  const parts = [o.brand, o.variant, o.size, o.region].filter(Boolean)
+  const parts = [o.brand, o.variant, o.size, o.quantity].filter(Boolean)
   return parts.length ? parts.join(' · ') : '—'
 }
 
@@ -42,7 +42,7 @@ export default async function MyOrders() {
 
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, created_at, status, butiksnavn, brand, variant, size, region, revision, send_after, pm_status')
+    .select('id, created_at, status, butiksnavn, brand, variant, size, quantity, revision, send_after, pm_status')
     .ilike('email', me.email)
     .order('created_at', { ascending: false })
     .limit(200)

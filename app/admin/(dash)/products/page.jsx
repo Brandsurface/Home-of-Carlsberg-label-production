@@ -22,12 +22,10 @@ export default async function AdminCatalogue({ searchParams }) {
 
   const [{ data: brands }, { data: settingRows }] = await Promise.all([
     supabase.from('brands').select('id, name, variants, sort, active').order('sort', { ascending: true }),
-    supabase.from('app_settings').select('key, value').in('key', ['sizes', 'regions', 'pantmaerke_exempt_region']),
+    supabase.from('app_settings').select('key, value').in('key', ['sizes']),
   ])
   const s = Object.fromEntries((settingRows || []).map(r => [r.key, r.value]))
-  const sizes = parseList(s.sizes, ['250 ml', '330 ml', '330 ml slim', '440 ml', '500 ml'])
-  const regions = parseList(s.regions, ['DK', 'Border'])
-  const pantExempt = s.pantmaerke_exempt_region || 'Border'
+  const sizes = parseList(s.sizes, ['33 cl', '44 cl'])
 
   const note = searchParams?.status ? STATUS[searchParams.status] : null
 
@@ -102,23 +100,12 @@ export default async function AdminCatalogue({ searchParams }) {
       <h2 style={{ fontSize: 18, fontWeight: 700, margin: '8px 0 4px' }}>{t.opts_heading}</h2>
       <p className="a-sub">{t.opts_sub}</p>
 
-      <div className="a-card" style={{ maxWidth: 720 }}>
+      <div className="a-card" style={{ maxWidth: 340 }}>
         <form method="POST" action="/api/admin/products" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <input type="hidden" name="action" value="save-options" />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label className="a-label">{t.opts_sizes}</label>
-              <ListBuilder initial={sizes} name="sizes" placeholder={t.opts_value_ph} addLabel={t.lb_add} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label className="a-label">{t.opts_regions}</label>
-              <ListBuilder initial={regions} name="regions" placeholder={t.opts_value_ph} addLabel={t.lb_add} />
-            </div>
-          </div>
-          <div style={{ borderTop: '1px solid #2e2e2e', paddingTop: 18, display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 320 }}>
-            <label className="a-label">{t.opts_pant_exempt}</label>
-            <input className="a-input" name="pantmaerke_exempt_region" defaultValue={pantExempt} />
-            <p style={{ fontSize: 12, color: '#7a7672', margin: 0, lineHeight: 1.5 }}>{t.opts_pant_help}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label className="a-label">{t.opts_sizes}</label>
+            <ListBuilder initial={sizes} name="sizes" placeholder={t.opts_value_ph} addLabel={t.lb_add} />
           </div>
           <button type="submit" className="a-btn" style={{ alignSelf: 'flex-start' }}>{t.opts_save}</button>
         </form>
