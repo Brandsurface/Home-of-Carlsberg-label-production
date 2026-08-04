@@ -12,7 +12,7 @@ export default async function AdminSettings({ searchParams }) {
     .from('app_settings')
     .select('key, value')
     .in('key', ['brandsurface_email', 'confirm_delay_minutes', 'help_box_active', 'help_box_html',
-      'hero_title_en', 'hero_title_da', 'hero_sub_en', 'hero_sub_da',
+      'hero_title_en', 'hero_title_da', 'hero_sub_en', 'hero_sub_da', 'hero_title_color', 'hero_sub_color',
       'op_label_en', 'op_label_da', 'op_sub_en', 'op_sub_da',
       'op_step1_title_en', 'op_step1_title_da', 'op_step1_p_en', 'op_step1_p_da',
       'op_step2_title_en', 'op_step2_title_da', 'op_step2_p_en', 'op_step2_p_da',
@@ -115,6 +115,20 @@ export default async function AdminSettings({ searchParams }) {
                 placeholder="Vælg mærke, angiv de tekniske specifikationer og udfyld detaljerne…"
                 style={{ fontFamily: "'DM Mono',monospace", fontSize: 13, resize: 'vertical' }} />
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="a-label" htmlFor="hero-title-color">{t.settings_hero_title_color}</label>
+                <input id="hero-title-color" type="color" name="hero_title_color"
+                  defaultValue={/^#[0-9a-fA-F]{6}$/.test(map.hero_title_color) ? map.hero_title_color : '#f1562e'}
+                  style={{ width: '100%', height: 40, padding: 2, background: '#242220', border: '1px solid #4a4640', borderRadius: 10, cursor: 'pointer' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="a-label" htmlFor="hero-sub-color">{t.settings_hero_sub_color}</label>
+                <input id="hero-sub-color" type="color" name="hero_sub_color"
+                  defaultValue={/^#[0-9a-fA-F]{6}$/.test(map.hero_sub_color) ? map.hero_sub_color : '#aebdb3'}
+                  style={{ width: '100%', height: 40, padding: 2, background: '#242220', border: '1px solid #4a4640', borderRadius: 10, cursor: 'pointer' }} />
+              </div>
+            </div>
           </div>
 
           <div style={{ borderTop: '1px solid #2e2e2e', paddingTop: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -192,6 +206,11 @@ export default async function AdminSettings({ searchParams }) {
               </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button type="button" id="podio-test-btn" className="a-btn-2">{t.settings_podio_test_btn}</button>
+              <span id="podio-test-result" style={{ fontSize: 13 }}></span>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label className="a-label">{t.settings_podio_employees}</label>
               <EmployeeBuilder initial={employees} name="podio_employees"
@@ -209,6 +228,54 @@ export default async function AdminSettings({ searchParams }) {
       </form>
 
       <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var btn = document.getElementById('podio-test-btn');
+          var result = document.getElementById('podio-test-result');
+          if (!btn) return;
+          var FIELD_LABELS = {
+            job_no: ${JSON.stringify(t.settings_podio_field_jobno)},
+            job_name: ${JSON.stringify(t.settings_podio_field_jobname)},
+            responsible: ${JSON.stringify(t.settings_podio_field_resp)},
+          };
+          var TESTING = ${JSON.stringify(t.settings_podio_testing)};
+          var OK = ${JSON.stringify(t.settings_podio_test_ok)};
+          var OK_APP = ${JSON.stringify(t.settings_podio_test_ok_app)};
+          var MISSING = ${JSON.stringify(t.settings_podio_test_missing)};
+          btn.addEventListener('click', function() {
+            btn.disabled = true;
+            result.style.color = '#7a7672';
+            result.textContent = TESTING;
+            fetch('/api/admin/podio/test', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                appId: document.getElementById('podio-app').value.trim(),
+                fieldJobNo: document.getElementById('pf-jobno').value.trim(),
+                fieldJobName: document.getElementById('pf-jobname').value.trim(),
+                fieldResponsible: document.getElementById('pf-resp').value.trim(),
+              }),
+            })
+              .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, d: d }; }); })
+              .then(function(res) {
+                if (!res.ok) throw new Error(res.d.error || 'Error');
+                var missing = [];
+                var f = res.d.fields || {};
+                Object.keys(FIELD_LABELS).forEach(function(k) {
+                  if (f[k] === false) missing.push(FIELD_LABELS[k]);
+                });
+                result.style.color = missing.length ? '#fbbf24' : '#4ade80';
+                var msg = res.d.appName ? OK_APP.replace('{name}', res.d.appName) : OK;
+                if (missing.length) msg += ' — ' + MISSING.replace('{fields}', missing.join(', '));
+                result.textContent = '✓ ' + msg;
+              })
+              .catch(function(err) {
+                result.style.color = '#f87171';
+                result.textContent = '✗ ' + err.message;
+              })
+              .finally(function() { btn.disabled = false; });
+          });
+        })();
+
         document.querySelectorAll('[data-tag]').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var tag = btn.dataset.tag;

@@ -93,7 +93,13 @@ header {
   background: rgba(9,15,12,0.85);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
-  padding: 0 40px; height: 64px;
+  height: 64px;
+}
+/* Same max-width + centering as .form-wrap, so the logo lines up with the
+   content below it instead of sitting flush against the viewport edge. */
+.header-inner {
+  max-width: 1320px; margin: 0 auto; height: 100%;
+  padding: 0 40px;
   display: flex; align-items: center; justify-content: space-between;
 }
 
@@ -451,7 +457,7 @@ select:disabled { opacity: 0.55; cursor: not-allowed; }
 @media (max-width: 920px) {
   .form-outer { grid-template-columns: 1fr; }
   .form-guide-panel { position: static; }
-  header { padding: 0 20px; }
+  .header-inner { padding: 0 20px; }
   .step-pills { display: none; }
   .form-wrap { padding: 32px 20px 60px; }
   .confirm-wrap { padding: 48px 20px 100px; }

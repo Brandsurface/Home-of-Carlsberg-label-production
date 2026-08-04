@@ -20,6 +20,11 @@ export async function POST(req) {
   const heroTitleDa = String(form.get('hero_title_da') || '').trim()
   const heroSubEn = String(form.get('hero_sub_en') || '').trim()
   const heroSubDa = String(form.get('hero_sub_da') || '').trim()
+  const HEX_RE = /^#[0-9a-fA-F]{6}$/
+  const heroTitleColorRaw = String(form.get('hero_title_color') || '').trim()
+  const heroSubColorRaw = String(form.get('hero_sub_color') || '').trim()
+  const heroTitleColor = HEX_RE.test(heroTitleColorRaw) ? heroTitleColorRaw : ''
+  const heroSubColor = HEX_RE.test(heroSubColorRaw) ? heroSubColorRaw : ''
 
   const opKeys = ['label', 'sub',
     'step1_title', 'step1_p', 'step2_title', 'step2_p',
@@ -75,6 +80,8 @@ export async function POST(req) {
       { key: 'hero_title_da', value: heroTitleDa, updated_at: now },
       { key: 'hero_sub_en', value: heroSubEn, updated_at: now },
       { key: 'hero_sub_da', value: heroSubDa, updated_at: now },
+      { key: 'hero_title_color', value: heroTitleColor, updated_at: now },
+      { key: 'hero_sub_color', value: heroSubColor, updated_at: now },
       ...Object.entries(opValues).map(([key, value]) => ({ key, value, updated_at: now })),
     ], { onConflict: 'key' })
 

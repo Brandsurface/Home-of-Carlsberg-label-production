@@ -29,6 +29,15 @@ function parseList(value, fallback) {
   }
 }
 
+const HEX_RE = /^#[0-9a-fA-F]{6}$/
+// Empty settings values mean "use the CSS default" — only a valid hex overrides it.
+function buildHeroStyle(settings) {
+  const rules = []
+  if (HEX_RE.test(settings.hero_title_color)) rules.push(`.form-hero h1{color:${settings.hero_title_color}}`)
+  if (HEX_RE.test(settings.hero_sub_color)) rules.push(`.form-hero p{color:${settings.hero_sub_color}}`)
+  return rules.length ? `<style>${rules.join('')}</style>` : ''
+}
+
 async function loadData(t) {
   let brands = []
   const settings = {}
@@ -38,6 +47,7 @@ async function loadData(t) {
       supabase.from('app_settings').select('key, value').in('key', [
         'sizes', 'help_box_active', 'help_box_html',
         'hero_title_en', 'hero_title_da', 'hero_sub_en', 'hero_sub_da',
+        'hero_title_color', 'hero_sub_color',
         'op_label_en', 'op_label_da', 'op_sub_en', 'op_sub_da',
         'op_step1_title_en', 'op_step1_title_da', 'op_step1_p_en', 'op_step1_p_da',
         'op_step2_title_en', 'op_step2_title_da', 'op_step2_p_en', 'op_step2_p_da',
@@ -94,7 +104,7 @@ async function loadData(t) {
     layers: buildBackgroundLayers(settings),
   }
 
-  return { brandTiles, sizeChips, finishOpts, paperOptsHtml, dataScript, helpBox: buildHelpBox(settings), heroOverrides, background }
+  return { brandTiles, sizeChips, finishOpts, paperOptsHtml, dataScript, helpBox: buildHelpBox(settings), heroOverrides, background, heroStyle: buildHeroStyle(settings) }
 }
 
 function buildHelpBox(settings) {
@@ -111,7 +121,7 @@ export default async function Home() {
   const filePath = path.join(process.cwd(), 'app', 'page.html')
   let html = fs.readFileSync(filePath, 'utf-8')
 
-  const { brandTiles, sizeChips, finishOpts, paperOptsHtml, dataScript, helpBox, heroOverrides, background } = await loadData(t)
+  const { brandTiles, sizeChips, finishOpts, paperOptsHtml, dataScript, helpBox, heroOverrides, background, heroStyle } = await loadData(t)
 
   if (heroOverrides.hero_title_en && lang === 'en') t.hero_title = heroOverrides.hero_title_en
   if (heroOverrides.hero_title_da && lang === 'da') t.hero_title = heroOverrides.hero_title_da
@@ -180,6 +190,7 @@ export default async function Home() {
   // it overrides order.css's default gradient.
   html = html.replace('<!--BG_STYLE-->', `<style>${background.css}</style>`)
   html = html.replace('<!--BG_LAYERS-->', background.layers)
+  html = html.replace('<!--HERO_STYLE-->', heroStyle)
 
   const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)
   const headContent = headMatch ? headMatch[1] : ''
