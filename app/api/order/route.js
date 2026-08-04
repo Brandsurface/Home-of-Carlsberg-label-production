@@ -118,7 +118,7 @@ export async function POST(request) {
     }
 
     if (!hasMailKey()) {
-      console.error('RESEND_API_KEY mangler')
+      console.error('MAILERSEND_API_KEY/SENDER_EMAIL mangler')
       return Response.json({ error: 'Mail-service ikke konfigureret' }, { status: 500 })
     }
 
@@ -130,7 +130,7 @@ export async function POST(request) {
       const { subject, html } = buildCustomerConfirmEmail({ order, baseUrl, delayMinutes })
       await sendEmail({ to: order.email, senderName: 'Ordre', subject, html })
     } catch (mailError) {
-      console.error('Resend fejl (kundebekræftelse):', mailError?.message)
+      console.error('Mail-fejl (kundebekræftelse):', mailError?.message)
       return Response.json({ success: true, orderId: order.id, warning: 'Ordre gemt, men bekræftelsesmail kunne ikke sendes' })
     }
 
@@ -143,7 +143,7 @@ export async function POST(request) {
         try {
           const uploadLinks = await buildUploadLinks(order)
           const bs = buildBrandsurfaceEmail({ order: { ...order, uploadLinks } })
-          // Resend assigns the id — keep it so the send can be cancelled later.
+          // MailerSend assigns the id — keep it so the send can be cancelled later.
           const { id } = await sendEmail({
             to: recipient,
             replyTo: order.email,
