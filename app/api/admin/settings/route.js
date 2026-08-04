@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getCurrentUser } from '@/lib/admin-auth'
+import { BG_KEYS, normalizeBg } from '@/lib/background'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,20 @@ export async function POST(req) {
     }
   } catch {}
 
+  // Background appearance — normalised on the way in so only values the
+  // public page will actually render can reach the database.
+  const bg = normalizeBg(Object.fromEntries(BG_KEYS.map(k => [k, form.get(k)])))
+  const bgRows = [
+    ['bg_gradient_from', bg.from],
+    ['bg_gradient_to', bg.to],
+    ['bg_gradient_angle', String(bg.angle)],
+    ['bg_image_url', bg.imageUrl],
+    ['bg_image_opacity', String(bg.imageOpacity)],
+    ['bg_overlay', bg.overlay],
+    ['bg_overlay_color', bg.overlayColor],
+    ['bg_overlay_opacity', String(bg.overlayOpacity)],
+  ]
+
   const now = new Date().toISOString()
   const { error: e1 } = await supabase
     .from('app_settings')
@@ -73,7 +88,11 @@ export async function POST(req) {
       { key: 'podio_employees', value: podioEmployees, updated_at: now },
     ], { onConflict: 'key' })
 
-  const error = e1 || e2 || e3
+  const { error: e4 } = await supabase
+    .from('app_settings')
+    .upsert(bgRows.map(([key, value]) => ({ key, value, updated_at: now })), { onConflict: 'key' })
+
+  const error = e1 || e2 || e3 || e4
   if (error) console.error('[settings] upsert error:', error.message)
   const status = error ? 'error' : 'saved'
   return NextResponse.redirect(new URL(`/admin/settings?status=${status}`, req.url), 303)

@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import { getAdminT } from '@/lib/admin-i18n'
+import { BG_KEYS } from '@/lib/background'
 import EmployeeBuilder from './EmployeeBuilder'
+import BackgroundPanel from './BackgroundPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +18,8 @@ export default async function AdminSettings({ searchParams }) {
       'op_step2_title_en', 'op_step2_title_da', 'op_step2_p_en', 'op_step2_p_da',
       'op_step3_title_en', 'op_step3_title_da', 'op_step3_p_en', 'op_step3_p_da',
       'op_step4_title_en', 'op_step4_title_da', 'op_step4_p_en', 'op_step4_p_da',
-      'podio_app_id', 'podio_field_job_no', 'podio_field_job_name', 'podio_field_responsible', 'podio_employees'])
+      'podio_app_id', 'podio_field_job_no', 'podio_field_job_name', 'podio_field_responsible', 'podio_employees',
+      ...BG_KEYS])
   const map = Object.fromEntries((data || []).map(r => [r.key, r.value]))
   const currentEmail = map.brandsurface_email || ''
   const currentDelay = map.confirm_delay_minutes ?? '10'
@@ -34,8 +37,9 @@ export default async function AdminSettings({ searchParams }) {
       {status === 'saved' && <div className="a-note ok">{t.settings_saved}</div>}
       {status === 'error' && <div className="a-note err">{t.settings_error}</div>}
 
-      <div className="a-card" style={{ maxWidth: 520 }}>
-        <form method="POST" action="/api/admin/settings" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <form method="POST" action="/api/admin/settings">
+        <div className="a-settings-grid">
+        <div className="a-card" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <label className="a-label" htmlFor="bs-email">{t.settings_email_label}</label>
             <input id="bs-email" className="a-input" name="brandsurface_email" type="email"
@@ -196,8 +200,13 @@ export default async function AdminSettings({ searchParams }) {
           </div>
 
           <button type="submit" className="a-btn" style={{ alignSelf: 'flex-start' }}>{t.settings_save}</button>
-        </form>
-      </div>
+        </div>
+
+        <div className="a-settings-side">
+          <BackgroundPanel initial={map} t={t} />
+        </div>
+        </div>
+      </form>
 
       <script dangerouslySetInnerHTML={{ __html: `
         document.querySelectorAll('[data-tag]').forEach(function(btn) {

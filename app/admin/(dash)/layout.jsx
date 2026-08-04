@@ -22,6 +22,13 @@ const ADMIN_CSS = `
 .a-h1 { font-size:28px; font-weight:800; letter-spacing:-0.02em; margin:0 0 6px; }
 .a-sub { color:#b8b4ae; font-size:14px; margin:0 0 28px; }
 .a-card { background:#1e1d1a; border:1px solid #4a4640; border-radius:16px; padding:20px; }
+/* Settings: long form on the left, appearance panel pinned alongside it */
+.a-settings-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,400px); gap:20px; align-items:start; }
+.a-settings-side { position:sticky; top:80px; max-height:calc(100vh - 100px); overflow-y:auto; }
+@media (max-width:900px) {
+  .a-settings-grid { grid-template-columns:minmax(0,1fr); }
+  .a-settings-side { position:static; max-height:none; overflow-y:visible; }
+}
 .a-label { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:#7a7672; }
 .a-input { background:#242220; border:1px solid #4a4640; border-radius:10px; padding:11px 13px; color:#f0ede8; font-size:14px; font-family:inherit; outline:none; width:100%; box-sizing:border-box; }
 .a-btn { padding:11px 22px; background:#f1562e; color:#fff; border:none; border-radius:999px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
