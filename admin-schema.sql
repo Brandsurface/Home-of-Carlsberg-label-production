@@ -124,6 +124,14 @@ insert into storage.buckets (id, name, public, file_size_limit)
 values ('order-uploads', 'order-uploads', false, 52428800)
 on conflict (id) do update set public = false, file_size_limit = 52428800;
 
+-- ── Site assets bucket (public, 10 MB per file) ──────
+-- Holds admin-uploaded design assets such as the order form's background
+-- image. Public because the browser loads it as a plain CSS url() on every
+-- page view — a signed URL would expire and break the background.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('site-assets', 'site-assets', true, 10485760)
+on conflict (id) do update set public = true, file_size_limit = 10485760;
+
 -- ── Customer accounts (self-signup, email-verified, cookie session) ──
 -- Lets an orderer log in to see their orders, copy old ones and track status.
 -- Emails are stored lowercased at the application layer.

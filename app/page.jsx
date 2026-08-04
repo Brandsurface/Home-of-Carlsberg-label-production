@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { supabase } from '@/lib/supabase'
 import { translations } from '@/lib/translations'
 import { getCustomerUser } from '@/lib/customer-auth'
+import { BG_KEYS, buildBackgroundCss, buildBackgroundLayers } from '@/lib/background'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +38,7 @@ async function loadData(t) {
         'op_step2_title_en', 'op_step2_title_da', 'op_step2_p_en', 'op_step2_p_da',
         'op_step3_title_en', 'op_step3_title_da', 'op_step3_p_en', 'op_step3_p_da',
         'op_step4_title_en', 'op_step4_title_da', 'op_step4_p_en', 'op_step4_p_da',
+        ...BG_KEYS,
       ]),
     ])
     brands = brandRows || []
@@ -101,7 +103,12 @@ async function loadData(t) {
   }
   for (const k of opKeys) heroOverrides[k] = settings[k] || ''
 
-  return { brandTiles, sizeChips, regionSeg, labelSeg, finishOpts, paperOptsHtml, dataScript, helpBox: buildHelpBox(settings), heroOverrides }
+  const background = {
+    css: buildBackgroundCss(settings),
+    layers: buildBackgroundLayers(settings),
+  }
+
+  return { brandTiles, sizeChips, regionSeg, labelSeg, finishOpts, paperOptsHtml, dataScript, helpBox: buildHelpBox(settings), heroOverrides, background }
 }
 
 function buildHelpBox(settings) {
@@ -118,7 +125,7 @@ export default async function Home() {
   const filePath = path.join(process.cwd(), 'app', 'page.html')
   let html = fs.readFileSync(filePath, 'utf-8')
 
-  const { brandTiles, sizeChips, regionSeg, labelSeg, finishOpts, paperOptsHtml, dataScript, helpBox, heroOverrides } = await loadData(t)
+  const { brandTiles, sizeChips, regionSeg, labelSeg, finishOpts, paperOptsHtml, dataScript, helpBox, heroOverrides, background } = await loadData(t)
 
   if (heroOverrides.hero_title_en && lang === 'en') t.hero_title = heroOverrides.hero_title_en
   if (heroOverrides.hero_title_da && lang === 'da') t.hero_title = heroOverrides.hero_title_da
@@ -183,6 +190,12 @@ export default async function Home() {
 
   // Server-side translations — replace all {{key}} markers
   html = html.replace(/\{\{(\w+)\}\}/g, (_, key) => t[key] ?? '')
+
+  // Admin-configured background. Injected after the translation pass so the
+  // generated CSS is never scanned for {{key}} markers, and last in <head> so
+  // it overrides order.css's default gradient.
+  html = html.replace('<!--BG_STYLE-->', `<style>${background.css}</style>`)
+  html = html.replace('<!--BG_LAYERS-->', background.layers)
 
   const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)
   const headContent = headMatch ? headMatch[1] : ''
