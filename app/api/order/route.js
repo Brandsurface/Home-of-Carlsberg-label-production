@@ -115,7 +115,7 @@ export async function POST(request) {
     }
 
     if (!hasMailKey()) {
-      console.error('MAILERSEND_API_KEY/SENDER_EMAIL mangler')
+      console.error('RESEND_API_KEY/SENDER_EMAIL mangler')
       return Response.json({ error: 'Mail-service ikke konfigureret' }, { status: 500 })
     }
 
@@ -140,7 +140,7 @@ export async function POST(request) {
         try {
           const uploadLinks = await buildUploadLinks(order)
           const bs = buildBrandsurfaceEmail({ order: { ...order, uploadLinks } })
-          // MailerSend assigns the id — keep it so the send can be cancelled later.
+          // Resend assigns the id — keep it so the send can be cancelled later.
           const { id } = await sendEmail({
             to: recipient,
             replyTo: order.email,

@@ -7,7 +7,7 @@ mail (with a grace-period delay), two languages and a flexible admin.
 
 - **Next.js 14** (App Router) — frontend + serverless API routes
 - **Supabase** — PostgreSQL database (orders, brands, settings, admin users) + file storage
-- **MailerSend** — transactional mail (customer confirmation + delayed, cancellable forwarding)
+- **Resend** — transactional mail (customer confirmation + delayed, cancellable forwarding)
 - **Vercel** — hosting
 
 ## What the customer fills in
@@ -29,8 +29,8 @@ can always go back and edit before submitting.
 Customer fills in the form
   ↓ POST /api/order
 Order saved in Supabase (status: pending)
-  ↓ MailerSend → customer confirmation (with Edit link)
-  ↓ MailerSend → Brandsurface order email, SCHEDULED after N minutes (admin-configurable grace period)
+  ↓ Resend → customer confirmation (with Edit link)
+  ↓ Resend → Brandsurface order email, SCHEDULED after N minutes (admin-configurable grace period)
   │
   ├── Edit link → /?edit=<id> → form re-loads with all data → resubmit (revision +1, timer resets)
   └── No action → after the delay the order auto-forwards to Brandsurface
@@ -61,13 +61,15 @@ variants and option lists are all editable without code changes.
 2. SQL Editor → run `supabase-schema.sql`, then `admin-schema.sql`
 3. Settings → API → copy the **Project URL** and the **service_role** secret
 
-### 2. MailerSend
+### 2. Resend
 
-1. [mailersend.com](https://www.mailersend.com) → **API Tokens** → create a
-   token with `email-full` access
+1. [resend.com](https://resend.com) → **API Keys** → create a key with
+   `Sending access`
 2. **Domains** → add & verify `brandsurface.dk` (or a subdomain) — SPF/DKIM
-   records shown in the dashboard. Sending fails until this is done; unlike
-   Resend there is no shared test sender to fall back to.
+   records shown in the dashboard. Sending fails until this is done; the app
+   requires `SENDER_EMAIL` explicitly rather than falling back to Resend's
+   shared test sender (`onboarding@resend.dev`), which only delivers to the
+   Resend account owner's own address.
 3. Set `SENDER_EMAIL` to an address on the verified domain (e.g.
    `ordre@brandsurface.dk`).
 
@@ -82,8 +84,8 @@ Copy `.env.example` → `.env.local` (local) or add them in Vercel:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API (service_role) |
-| `MAILERSEND_API_KEY` | MailerSend → API Tokens |
-| `SENDER_EMAIL` | Address on a domain verified in MailerSend (required — no test-sender fallback) |
+| `RESEND_API_KEY` | Resend → API Keys |
+| `SENDER_EMAIL` | Address on a domain verified in Resend (required — no test-sender fallback) |
 | `SENDER_NAME` | Display name; overrides the per-mail label when set (optional) |
 | `BRANDSURFACE_EMAIL` | Fallback recipient (also editable in admin) |
 | `ADMIN_SESSION_SECRET` | Long random string (`openssl rand -hex 32`) |
